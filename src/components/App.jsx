@@ -37,7 +37,7 @@ export default class App extends Component {
 
   handleLoadMore = () => {
     this.setState(prevState => {
-      return { nextPage: ++prevState.nextPage };
+      return { nextPage: prevState.nextPage + 1 };
     });
   };
 

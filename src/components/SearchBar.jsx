@@ -8,6 +8,7 @@ export default function SearchBar({ value, onSubmit, onChange }) {
         <input
           className="SearchForm-input"
           type="text"
+          name="query"
           autoComplete="off"
           autoFocus
           placeholder="Search images and photos"

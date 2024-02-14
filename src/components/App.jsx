@@ -16,6 +16,7 @@ const INITIAL_STATE = {
   isModalOpen: false,
   currentPhotoId: '',
 };
+
 const PER_PAGE = 12;
 
 export default class App extends Component {
@@ -104,7 +105,6 @@ export default class App extends Component {
         {this.state.page > 0 && this.state.page < this.state.pages ? (
           <Button onClick={this.handleLoadMore}>Load more</Button>
         ) : undefined}
-
         {this.state.isModalOpen && (
           <Modal url={largePhotoUrl} onModalClose={this.handleModalClose} />
         )}

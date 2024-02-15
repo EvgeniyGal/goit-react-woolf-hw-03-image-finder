@@ -2,7 +2,7 @@ import LazyLoad from 'react-lazy-load';
 
 export default function ImageGalleryItem({
   onModalOpen,
-  photoData: { webformatURL, id },
+  photoData: { webformatURL, largeImageURL },
 }) {
   return (
     <li className="ImageGalleryItem">
@@ -10,7 +10,7 @@ export default function ImageGalleryItem({
         <img
           className="ImageGalleryItem-image"
           src={webformatURL}
-          onClick={() => onModalOpen(id)}
+          onClick={() => onModalOpen(largeImageURL)}
           alt="Gallery item"
         />
       </LazyLoad>

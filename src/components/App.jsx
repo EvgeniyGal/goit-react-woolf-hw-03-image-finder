@@ -10,11 +10,10 @@ const INITIAL_STATE = {
   galleryPhotos: [],
   query: '',
   page: 0,
-  nextPage: 0,
-  pages: 42,
+  totalHits: 0,
   isLoading: false,
   isModalOpen: false,
-  currentPhotoId: '',
+  currentPhotoUrl: '',
 };
 
 const PER_PAGE = 12;
@@ -22,35 +21,15 @@ const PER_PAGE = 12;
 export default class App extends Component {
   state = { ...INITIAL_STATE };
 
-  handlerSubmitFormQuery = ev => {
-    ev.preventDefault();
-    if (!this.state.query.trim()) {
-      return;
-    }
-    this.setState({ ...INITIAL_STATE, query: this.state.query, nextPage: 1 });
-  };
-
-  handlerChangeQuery = ev => {
-    const query = ev.target.value;
-    this.setState({ query });
-  };
-
-  handleLoadMore = () => {
-    this.setState(prevState => {
-      return { nextPage: prevState.nextPage + 1 };
-    });
-  };
-
   async componentDidUpdate(_, prevState) {
     if (
-      (this.state.nextPage !== prevState.nextPage ||
-        this.state.page !== prevState.page) &&
-      this.state.page !== this.state.nextPage
+      this.state.page !== prevState.page ||
+      this.state.query !== prevState.query
     ) {
       this.setState({ isLoading: true });
       try {
         const {
-          data: { hits, total },
+          data: { hits, totalHits },
         } = await getPhotoGallery(
           this.state.query,
           this.state.nextPage,
@@ -59,11 +38,9 @@ export default class App extends Component {
         const newPhotos = hits.map(({ id, webformatURL, largeImageURL }) => {
           return { id, webformatURL, largeImageURL };
         });
-        const totalPages = total <= 500 ? Math.ceil(total / PER_PAGE) : 42;
         this.setState({
           galleryPhotos: [...this.state.galleryPhotos, ...newPhotos],
-          pages: totalPages,
-          page: this.state.nextPage,
+          totalHits,
           isLoading: false,
         });
       } catch (error) {
@@ -72,28 +49,28 @@ export default class App extends Component {
     }
   }
 
+  handlerSubmit = query => {
+    this.setState({ ...INITIAL_STATE, query, page: 1 });
+  };
+
+  handleLoadMore = () => {
+    this.setState(prevState => {
+      return { page: prevState.page + 1 };
+    });
+  };
+
   handleModalClose = () => {
     this.setState({ isModalOpen: false });
   };
 
-  handleModalOpen = id => {
-    this.setState({ isModalOpen: true, currentPhotoId: id });
+  handleModalOpen = largeImageURL => {
+    this.setState({ isModalOpen: true, currentPhotoUrl: largeImageURL });
   };
 
   render() {
-    let largePhotoUrl;
-    if (this.state.isModalOpen) {
-      largePhotoUrl = this.state.galleryPhotos.find(
-        photo => photo.id === this.state.currentPhotoId
-      ).largeImageURL;
-    }
     return (
       <div className="App">
-        <SearchBar
-          value={this.state.query}
-          onChange={this.handlerChangeQuery}
-          onSubmit={this.handlerSubmitFormQuery}
-        />
+        <SearchBar onSubmit={this.handlerSubmit} />
         {this.state.galleryPhotos.length > 0 ? (
           <ImageGallery
             onModalClose={this.handleModalClose}
@@ -102,11 +79,14 @@ export default class App extends Component {
           />
         ) : undefined}
         {this.state.isLoading && <Loader />}
-        {this.state.page > 0 && this.state.page < this.state.pages ? (
+        {this.state.page < Math.ceil(this.state.totalHits / PER_PAGE) ? (
           <Button onClick={this.handleLoadMore}>Load more</Button>
         ) : undefined}
         {this.state.isModalOpen && (
-          <Modal url={largePhotoUrl} onModalClose={this.handleModalClose} />
+          <Modal
+            url={this.state.currentPhotoUrl}
+            onModalClose={this.handleModalClose}
+          />
         )}
       </div>
     );
